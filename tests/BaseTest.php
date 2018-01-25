@@ -6,7 +6,7 @@ class BaseTest extends PHPUnit_Framework_TestCase {
 	 * @return void
 	 */
 	public function testArr() {
-        $middlewares = [
+        $middlewares = array(
             function($a,$next){
                 var_dump($a);
                 return $next($a + 5);
@@ -20,9 +20,9 @@ class BaseTest extends PHPUnit_Framework_TestCase {
                 $r = $next($c - 1);
                 return $r;
             },
-        ];
-
-        $result = (new \Tian\Pipeline())->send(1)->through($middlewares)->then(function ($request) {
+        );
+        $pp = new \Aw\Pipeline();
+        $result = $pp->send(1)->through($middlewares)->then(function ($request) {
                 echo '>>>'.$request . PHP_EOL;
                 return "taw";
         });

@@ -3,13 +3,13 @@
 /**
  * @date 2017/6/8 17:50:44
  */
-namespace Tian;
+namespace Aw;
 
 class Pipeline {
     /**
      * @var array
      */
-    protected $middlewares = [];
+    protected $middlewares = array();
 
     protected $request;
 
@@ -42,11 +42,38 @@ class Pipeline {
         $pipes = array_reverse($this->middlewares);
         $run = array_reduce($pipes, function ($carry, $pipe) {
             return function ($passable) use ($carry, $pipe) {
-                return call_user_func_array($pipe, [$passable, $carry]);
+                if ($pipe instanceof \Closure)
+                {
+                    return call_user_func_array($pipe, array($passable, $carry));
+                }
+                else
+                {
+                    return $this->handle($pipe, array($passable, $carry));
+                }
+
             };
         }, function ($passable) use ($destination){
             return call_user_func($destination, $passable);
         });
         return call_user_func($run, $this->request);
     }
+
+    /**
+     * @param $class
+     * @param $arg
+     * @return mixed|null
+     */
+    protected function handle($class,$arg)
+    {
+        $rc = new \ReflectionClass($class);
+        if ($rc->hasMethod("handle"))
+        {
+            $ins = $rc->newInstance();
+            $met = $rc->getMethod("handle");
+            $ret = $met->invoke($ins,$arg[0],$arg[1]);
+            return $ret;
+        }
+        return null;
+    }
+
 }
